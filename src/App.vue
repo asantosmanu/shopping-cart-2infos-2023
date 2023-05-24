@@ -8,16 +8,36 @@ const carrinho = ref({
 })
 
 function adicionarAoCarrinho(livro) {
-  carrinho.value.itens.push({
-    ...livro,
-    quantidade: 1,
-    total: livro.price
-  })
-  carrinho.value.total += livro.price
+  const index = carrinho.value.itens.findIndex((item) => item.id === livro.id)
+  if (index === -1){
+    carrinho.value.itens.push({
+      ...livro,
+      quantidade: 1,
+      total: livro.price
+    })
+    carrinho.value.total += livro.price
+  }
+  else {
+    carrinho.value.itens[index].quantidade++
+    carrinho.value.itens[index].total += livro.price
+    carrinho.value.total += livro.price
+  }
 }
 
 function formatarPreco(preco) {
   return 'R$ ' + preco.toFixed(2).replace('.', ',')
+}
+
+function atualizaQuantidadeItem(item){
+  carrinho.value.total -= item.total
+  item.total = item.price * item.quantidade
+  carrinho.value.total += item.total
+}
+
+function removerItemCarrinho(item){
+  const index = carrinho.value.itens.findIndex((i) => i.id === item.id)
+  carrinho.value.total -= item.total
+  carrinho.value.itens.splice(index, 1)
 }
 </script>
 
@@ -50,7 +70,14 @@ function formatarPreco(preco) {
                 <p class="info-livro-preco">{{ formatarPreco(item.price) }}/un</p>
               </div>
               <div>
-                <p>Qtde: {{ item.quantidade }}</p>
+                <p>Quantidade: 
+                  <input 
+                  type="number" 
+                  v-model="item.quantidade" 
+                  @change="atualizaQuantidadeItem(item)"
+                  min="1"/>
+                </p>
+                <button @click="removerItemCarrinho(item)">&#128465</button>
                 <p>Total: {{ formatarPreco(item.total) }}</p>
               </div>
             </div>
@@ -63,6 +90,23 @@ function formatarPreco(preco) {
 </template>
 
 <style scoped>
+.detalhes-livro input[type='number'] {
+  width: 50px;
+  text-align: center;
+  border: none;
+  border-bottom: 1px solid black;
+  background-color: transparent;
+  margin-left: 10px;
+}
+.detalhes-livro button{
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: black;
+  padding: 0;
+  margin: 0;
+}
 .info-livro {
   display: flex;
   margin-bottom: 10px;
